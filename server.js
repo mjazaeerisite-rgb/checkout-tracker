@@ -1,0 +1,14 @@
+var express = require("express");
+var http = require("http");
+var cors = require("cors");
+var socketio = require("socket.io");
+var app = express();
+var server = http.createServer(app);
+app.use(cors());
+app.use(express.json());
+var io = new socketio.Server(server, { cors: { origin: true, methods: ["GET", "POST"] } });
+app.get("/", function(req, res) { res.send("OK"); });
+app.get("/health", function(req, res) { res.json({ ok: true }); });
+app.post("/api/checkout-event", function(req, res) { var data = req.body || {}; data.timestamp = new Date().toISOString(); io.emit("checkout_event", data); res.json({ status: "ok" }); });
+io.on("connection", function(socket) { console.log("Connected " + socket.id); });
+server.listen(process.env.PORT || 3001, "0.0.0.0", function() { console.log("Running"); });
